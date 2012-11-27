@@ -16,11 +16,22 @@ search by headers
 	string: paragraph entry
 	string: search headers
 '''
-from idead_tables import User,Idea
+from idea_tables import User,Idea, Base
 
 from sqlalchemy import create_engine,and_,or_
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 import sys, string
 from operator import ne,eq,lt,le,ge,gt
 #make a new and improved search ability, make an importable class?
+
+
+#storage path for the database
+path="C:\\Users\Charles\Dropbox\Programming\DataBases\Idea_Box.db"
+
+#create the engine, the base and the session
+engine=create_engine('sqlite:///'+path,echo=False)
+Session=sessionmaker(bind=engine)
+
+session=Session() #create the session object to comm with db
+Base.metadata.create_all(engine) #create our db with the tables
+
