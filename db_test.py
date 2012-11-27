@@ -17,9 +17,11 @@ class test1Error(Exception):
 print "Test 1: Creating and commiting an entry"
 try:
 		for thing in session.query(User):
-			print thing
+			print thing.id
+		session.add(User("Charles%s"%str(thing.id+1),"Test",Idea("TestIdea","I THINK IT SHOULD WORK PROPERLY","TESTS")))
+		session.commit()
 except:
 	print "Did not pass test 1"
-finally:
+else:
 	print "#####Test 1: passed!"
 

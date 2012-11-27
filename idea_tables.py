@@ -17,9 +17,10 @@ class User(Base):
 	
 	ideas=relationship("Idea", backref="users")
 	
-	def __init__(self,username,password):
+	def __init__(self,username,password,ideas):
 		self.username=username
 		self.password=password#this is something you could do some security work with
+		self.ideas=ideas
 
 	
 
@@ -35,8 +36,7 @@ class Idea(Base):
 	tags=Column(String)
 	
 	
-	def __init__(self,id,title,idea,tag):
-		self.user_id=id
+	def __init__(self,title,idea,tag):
 		self.title=title
 		self.idea=idea
 		self.tag=tag
