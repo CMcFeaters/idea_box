@@ -14,18 +14,22 @@ class User(Base):
 	id=Column(Integer,primary_key=True)
 	username=Column(String)#will be all lowercase
 	password=Column(String)
+	ideas=relationship("Idea", backref="users") #this is the link to the idea table
 	
-	ideas=relationship("Idea", backref="users")
-	
-	def __init__(self,username,password,ideas):
+	def __init__(self,username,password):
 		self.username=username
 		self.password=password#this is something you could do some security work with
-		self.ideas=ideas
-
+	
+		
+	def __repr__(self):
+		#print portion
+		return "User Id: %s \n UserName: %s \n Password: %s"%(self.id, self.username,self.password)
+		
 	
 
 class Idea(Base):
 	'''the ideas table'''
+	#each idea in the tableis linked back to a specific user using their ID as a foreign key
 	__tablename__='ideas'
 	
 	id=Column(Integer,primary_key=True)
@@ -36,7 +40,8 @@ class Idea(Base):
 	tags=Column(String)
 	
 	
-	def __init__(self,title,idea,tag):
+	def __init__(self,user_id,title,idea,tag):
+		self.user_id=user_id
 		self.title=title
 		self.idea=idea
 		self.tag=tag
@@ -49,5 +54,5 @@ class Idea(Base):
 			self.tag=self.tag+" , "+tag
 		
 	def __repr__(self):
-		return "User: %s\nTitle: %s\nIdea:\n%s\nTags: %s"%(self.user_id,self.title,self.idea,self.tag)
+		return "Title: %s\nIdea:\n%s\nTags: %s"%(self.title,self.idea,self.tags)
 		
