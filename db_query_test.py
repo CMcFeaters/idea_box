@@ -51,7 +51,7 @@ try:
 	print "printing all Ideas of each User:"
 	
 	for thing in names:
-		print "IDeas for: %s"%(thing.username)		
+		print "Ideas for: %s"%(thing.username)		
 		print thing.ideas
 				
 	session.close

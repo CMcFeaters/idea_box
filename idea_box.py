@@ -37,28 +37,43 @@ def createAll():
 	Base.metadata.create_all(engine) #create our db with the tables
 	return session
 	
-def createUser(username,password):
+def createUser(username,password,session=createAll()):
 	#create a new user
 	#verifies username does not exist, password is at least 10 characters
 	#returns 1 if creation successful
-	if session.query(User).filter(username==username).count>0:
+	results=session.query(User).filter(User.username==username)
+	#checklength of results
+	if len(results.all())>0:
+		session.close()
 		return "Username already exists"
-	elif password.length()<=10:
+	#check passwordlength
+	if len(password)<=10:
+		session.close()
 		return "Password too short"
-	else:
-		session.add(User(username,password))
-		session.commit()
-		return 1
-	
-
-def createIdea(username,title,idea,tags):
-	#create a new idea in the database
-	#uses username to query user_id
-	
-	session.add(Idea(user_id,title,idea,tags))
+	#if it's all good, commit and move on with our lives
+	session.add(User(username,password))
 	session.commit()
+	session.close()
+	return 1
+	
+def createIdea(user,title,idea,tags, session=createAll()):
+	#create a new idea in the database
+	#"user" is the user that the idea shall be assigned to	
+	#check to verify there are no existing ideas with the same title
+	#if so, add and commit
+	newIdea=Idea(user.id,title,idea,tags)
+	
+	#check for duplicate titles
+	results=session.query(Idea).filter(and_(Idea.user_id==user.id,idea.title==title)).all()
+	if len(results)>0:
+		#mutliple with the same title
+		session.close()
+		return "Title Already Exists"
+	else:
+		session.add(newIdea)
+		session.commit()
+	session.close()
+	return 1
 
 def deleteUser(username):
 	pass
-	
-

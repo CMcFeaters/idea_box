@@ -14,13 +14,12 @@ class User(Base):
 	id=Column(Integer,primary_key=True)
 	username=Column(String)#will be all lowercase
 	password=Column(String)
-	ideas=relationship("Idea", backref="users") #this is the link to the idea table
+	ideas=relationship("Idea", backref="users", cascade="all, delete-orphan") #this is the link to the idea table
 	
 	def __init__(self,username,password):
 		self.username=username
 		self.password=password#this is something you could do some security work with
 	
-		
 	def __repr__(self):
 		#print portion
 		return "User Id: %s \n UserName: %s \n Password: %s"%(self.id, self.username,self.password)
@@ -38,7 +37,6 @@ class Idea(Base):
 	title=Column(String(20))
 	idea=Column(String)
 	tags=Column(String)
-	
 	
 	def __init__(self,user_id,title,idea,tag):
 		self.user_id=user_id
