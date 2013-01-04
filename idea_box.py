@@ -64,7 +64,8 @@ def createIdea(user,title,idea,tags, session=createAll()):
 	newIdea=Idea(user.id,title,idea,tags)
 	
 	#check for duplicate titles
-	results=session.query(Idea).filter(and_(Idea.user_id==user.id,idea.title==title)).all()
+	results=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()
+	print len(results)
 	if len(results)>0:
 		#mutliple with the same title
 		session.close()

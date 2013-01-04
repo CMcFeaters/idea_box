@@ -5,11 +5,13 @@
 #create an entry
 try:
 	print "Attempting Importing"
-	import sys, string, random, os
-	import idea_box
+	import sys, string, random, os, idea_box
+	
 	from idea_tables import Idea, User
+	
 	from idea_box import path as impPath
 	sys.path.append("C:\\Users\Charles\Dropbox\Programming\py\general_use")
+	from error_classes import stdException
 	from conversion import timeConv
 	from random_tools import id_generator
 except:
@@ -90,7 +92,7 @@ def newIdea():
 		z=idea_box.createIdea(testUser,testIdea.title,testIdea.idea,testIdea.tags,session)
 		if z!=1:
 			print z
-			raise
+			raise Exception("IT WORKED")
 	except:
 		print "Idea Creation Failed"
 		raise
@@ -119,41 +121,15 @@ def dupIdea():
 		testIdea=Idea(testUser.id,controlIdea.title,"%s"%(id_generator(10,string.ascii_uppercase)),id_generator(5,string.ascii_uppercase))
 		print testIdea
 		z=idea_box.createIdea(testUser,testIdea.title,testIdea.idea,testIdea.tags,session)
-		if z!=1:
-			print z
-			raise error #HERE!###################################
+		if z!=1:raise stdException("BLANK")
+		
+	except stdException:
+		print "Duplicate Idea Title Exists"
 	except:
-		print "Duplicate Idea Creation Failed"
+		print "Duplicte IDea Creation Failed"
 		raise
 	else:
 		print "Duplicate Idea Creation Successful"
-	
-def newIdeaOldUser():
-	#creates a new idea for a user with already existing ideas
-	try:
-		print "Attempting Second Idea Addition"
-		
-		#find a user with at least 1 idea
-		session=idea_box.createAll()
-		results=session.query(User)
-		x=[thing for thing in results if thing.ideas!=[]]
-		
-		#pick a random user
-		testUser=x[random.randrange(len(x))]
-		
-		#error here
-		#temp=list(testUser.ideas)
-		testIdea=Idea(testUser.id,"TEST IDEA","%s"%(id_generator(10,string.ascii_uppercase)),id_generator(5,string.ascii_uppercase))
-		session.add(testIdea)
-		session.commit()
-		session.close()
-		#print 'hey'
-		#testUser.ideas=temp
-	except:
-		print "Second Idea Creation Failed"
-		raise
-	else:
-		print "Second Idea Creation Successful"
 		
 def deleteUser():
 	try:
@@ -199,7 +175,5 @@ print "----------------------"
 newIdea()
 print "----------------------"	
 dupIdea()
-#print "----------------------"	
-#newIdeaOldUser()
 print "----------------------"	
 deleteUser()
