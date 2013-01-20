@@ -75,6 +75,38 @@ def createIdea(user,title,idea,tags, session=createAll()):
 	session.close()
 	return 1
 
+def idea_change(user,title,thingtochange,changetothis,edremadd, session=createAll()):
+	'''#a function designed to change any partof an idea
+	#user owns the idea, title identifies which idea it is
+	#thingtochange identifies which item will be changed (tag, title, etc)
+	#changetothis is the new value for whatever is being changed (note: if a tag is being editted, this is a tuple, containing which tag to change[0] and what to change it to[1])
+	#edremadd is a flag signifying if the thingtochange is being edited (0), removed(-1) or added (1)'''
+	#find the idea
+	idea=session.query(Idea).filter(_and(Idea.user_id==user.id,Idea.title==title)).all()[0]
+	
+	#makethechanges
+	if edremadd==-1 and thingtochange=="tags":
+		#deleting, only works for tags
+		
+	elif eremadd==0:
+		#editing
+		if thingtochange=="tags":
+			#need to change the specific tag in the array
+			tagNum=idea.__dict__[thingtochange].index(changetothis[0])
+			idea.__dict__[thingtochange][tagNum]=changetothis[1]
+		else: idea.__dict__[thingtochange]=changetothis
+	elif edremadd==1 and thingtochage=="tags":
+		#adding, this only works for tags
+		idea.__dict__[thingtochange].append(changetothis)
+	else:
+		print "Cannot complete transaction"
+		session.close()
+	
+	#get thefuck out
+	session.commit()
+	session.close()
+	
+
 def signInVerify(userName,password):
 	#a function to check the username against it's password
 	#given a username and password, returns 1 if correct or a string defining why

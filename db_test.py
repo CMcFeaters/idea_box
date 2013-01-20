@@ -136,7 +136,6 @@ def secondTag():
 		results=session.query(User).all()
 		nResults=[x for x in results if x.ideas!=[]]
 		testUser=nResults[random.randrange(len(nResults))]
-		
 		testUser.ideas[random.randrange(len(testUser.ideas))].addTag("EXTRA!!!!!!!!!!")
 		session.commit()
 		session.close()
@@ -193,6 +192,14 @@ def passwordCheck():
 		raise
 	else:
 		print "Password Cehck Success"
+
+def testIdeaEditor():
+	#we stopped when we were creating this test process
+	try:
+		print "Testing Idea editor"
+		try:
+			print "test1: Adding to a tag"
+		
 		
 #deleteDB()
 #createDB()
