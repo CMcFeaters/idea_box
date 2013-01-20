@@ -41,11 +41,11 @@ def createUser(username,password,session=createAll()):
 	#create a new user
 	#verifies username does not exist, password is at least 10 characters
 	#returns 1 if creation successful
-	results=session.query(User).filter(User.username==username)
+	results=session.query(User).filter(User.username==username.lower())
 	#checklength of results
 	if len(results.all())>0:
-		session.close()
 		return "Username already exists"
+		session.close()
 	#check passwordlength
 	if len(password)<=10:
 		session.close()
@@ -65,7 +65,6 @@ def createIdea(user,title,idea,tags, session=createAll()):
 	
 	#check for duplicate titles
 	results=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()
-	print len(results)
 	if len(results)>0:
 		#mutliple with the same title
 		session.close()
@@ -76,5 +75,15 @@ def createIdea(user,title,idea,tags, session=createAll()):
 	session.close()
 	return 1
 
-def deleteUser(username):
-	pass
+def signInVerify(userName,password):
+	#a function to check the username against it's password
+	#given a username and password, returns 1 if correct or a string defining why
+	session=createAll()
+	result=session.query(User).filter(User.username==userName)
+	if len(result.all())!=1:
+		return "Username Not Found"
+	elif result[0].password!=password:
+		return "Password Incorrect"
+	else:
+		return 1
+	

@@ -19,7 +19,6 @@ except:
 	raise 
 else:
 	print "Importing Complete"
-print "----------------------"
 
 #This section is only used if we make changes to our database
 #delete the existing database for now till it is setup the way we want it
@@ -88,7 +87,6 @@ def newIdea():
 		#the test user has no ideas, we will add a new one
 		testUser=x[0]
 		testIdea=Idea(testUser.id,"TEST IDEA_%s"%(id_generator(random.randrange(3),string.digits)),"%s"%(id_generator(10,string.ascii_uppercase)),id_generator(5,string.ascii_uppercase))
-		print testIdea
 		z=idea_box.createIdea(testUser,testIdea.title,testIdea.idea,testIdea.tags,session)
 		if z!=1:
 			print z
@@ -99,11 +97,11 @@ def newIdea():
 	else:
 		print "Idea Creation Successful"
 		
-def dupIdea():
+def secondIdea():
 	#create a duplicate idea for a user with existing ideas
 	try:
 		#add an idea to a user with no existing ideas, if one does not exist, create a new user
-		print "Attempting Duplicate First Idea Addition"
+		print "Attempting Second Idea Addition"
 		
 		#find a user with no ideas
 		session=idea_box.createAll()
@@ -119,17 +117,35 @@ def dupIdea():
 		controlIdea=session.query(Idea).filter(Idea.user_id==testUser.id).all()[0]
 		
 		testIdea=Idea(testUser.id,controlIdea.title,"%s"%(id_generator(10,string.ascii_uppercase)),id_generator(5,string.ascii_uppercase))
-		print testIdea
 		z=idea_box.createIdea(testUser,testIdea.title,testIdea.idea,testIdea.tags,session)
 		if z!=1:raise stdException("BLANK")
 		
 	except stdException:
-		print "Duplicate Idea Title Exists"
+		print "Second Idea title already Exists"
 	except:
-		print "Duplicte IDea Creation Failed"
+		print "Second Idea Creation Failed"
 		raise
 	else:
-		print "Duplicate Idea Creation Successful"
+		print "Second Idea Creation Successful"
+		
+def secondTag():
+	try:
+		#this tests the idea_tables.idea.addTag(tag) function
+		print "Attempting Tag Addition"
+		session=idea_box.createAll()
+		results=session.query(User).all()
+		nResults=[x for x in results if x.ideas!=[]]
+		testUser=nResults[random.randrange(len(nResults))]
+		
+		testUser.ideas[random.randrange(len(testUser.ideas))].addTag("EXTRA!!!!!!!!!!")
+		session.commit()
+		session.close()
+	except:
+		print "Tag Addition Failed"
+		raise
+	else:
+		print "Tag Addition Success"
+
 		
 def deleteUser():
 	try:
@@ -145,35 +161,50 @@ def deleteUser():
 		raise
 	else:
 		print "User Deletion Successful"
-'''#add an idea to a user with no existing ideas
-try:
-	print "Attempting Entry Creation"
+
+def changeToLower():
+	#a function that changes all usernames to lowercase
 	session=idea_box.createAll()
-	session.add(User("Charles","Test"))
-	print "User Created"
-	results=session.query(User).filter(User.Id==0)
-	if results[0].ideas==[]:
-		#if the ideas are empty, we'll add the first one
-		results[0].ideas=[Idea(results[0].id,"TestIdea","I THINK IT SHOULD WORK PROPERLY","TESTS")]
-	else:
-		print 'test'
-		#if they are not empty, we need to append an idea
-		results[0].ideas.append(Idea(results[0].id,"TestIdea","I THINK IT SHOULD WORK PROPERLY","TESTS"))
+	results=session.query(User).all()
+	lNames=[thing.username.lower() for thing in results]
+	for i in range(len(results)):
+		results[i].username=lNames[i]
+		session.add(results[i])
 	session.commit()
-	session.close()
-except:
-	print "Entry Creation Failed"
-	raise
-else:
-	print "Entry Creation Complete"
-	
-#add an idea to a user with an existin gidea
-'''
+	session.close
+		
+
+def passwordCheck():
+	#runs the password check function
+	try:
+		print "Running Password Check"
+		session=idea_box.createAll()
+		results=session.query(User).all()
+		uName=results[0].username
+		pw=results[0].password
+		x=idea_box.signInVerify(uName,pw)
+		if x==1:
+			print "Welcome in ",uName
+		else:
+			print x
+		session.close()
+	except:
+		print "Password Check Failure"
+		raise
+	else:
+		print "Password Cehck Success"
+		
+#deleteDB()
+#createDB()
 print "----------------------"	
 newUser()
 print "----------------------"	
 newIdea()
 print "----------------------"	
-dupIdea()
+secondIdea()
 print "----------------------"	
-deleteUser()
+changeToLower()
+print "----------------------"	
+secondTag()
+print "----------------------"
+passwordCheck()

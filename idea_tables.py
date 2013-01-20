@@ -12,12 +12,12 @@ class User(Base):
 	__tablename__='users'
 	
 	id=Column(Integer,primary_key=True)
-	username=Column(String)#will be all lowercase
+	username=Column(String)
 	password=Column(String)
 	ideas=relationship("Idea", backref="users", cascade="all, delete-orphan") #this is the link to the idea table
 	
 	def __init__(self,username,password):
-		self.username=username
+		self.username=username.lower()
 		self.password=password#this is something you could do some security work with
 	
 	def __repr__(self):
@@ -38,18 +38,18 @@ class Idea(Base):
 	idea=Column(String)
 	tags=Column(String)
 	
-	def __init__(self,user_id,title,idea,tag):
+	def __init__(self,user_id,title,idea,tags):
 		self.user_id=user_id
-		self.title=title
+		self.title=title.lower()
 		self.idea=idea
-		self.tag=tag
+		self.tags=tags
 	
 	def addTag(self,tag):
 		#adds a tag to the self.tag string, separated with a comma
-		if self.tag=="":
-			self.tag=tag
+		if self.tags=="":
+			self.tags=tag
 		else:
-			self.tag=self.tag+" , "+tag
+			self.tags=str(self.tags)+" , "+tag
 		
 	def __repr__(self):
 		return "Title: %s\nIdea:\n%s\nTags: %s"%(self.title,self.idea,self.tags)
