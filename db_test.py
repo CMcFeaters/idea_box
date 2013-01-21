@@ -231,7 +231,7 @@ def testIdeaEditor():
 			print "*****test1******"
 			print testIdea
 			print "*******************"
-		
+
 		try:
 			print "test2: Editing a tag"
 			idea_box.idea_change(testUser,testIdea.title,"tags",("Added by test process","ALPHA"),0,session)
@@ -244,7 +244,7 @@ def testIdeaEditor():
 			print "*****test2******"
 			print testIdea
 			print "*******************"
-		
+
 		try:
 			print "test3: Deleting a tag"
 			idea_box.idea_change(testUser,testIdea.title,"tags","ALPHA",-1,session)
