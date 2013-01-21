@@ -161,8 +161,21 @@ def deleteUser():
 	else:
 		print "User Deletion Successful"
 
-def changeToLower():
-	#a function that changes all usernames to lowercase
+def changeToLowerIdeas():
+	#a function that changes all idea titles to lowercase
+	session=idea_box.createAll()
+	results=session.query(User).all()
+	
+	for user in results:
+		for idea in user.ideas:
+			idea.title=idea.title.lower()
+			idea.tags=idea.tags.lower()
+			
+	session.commit()
+	session.close
+	
+def changeToLowerUsers():
+	#change all aspects of ideas to lower case
 	session=idea_box.createAll()
 	results=session.query(User).all()
 	lNames=[thing.username.lower() for thing in results]
@@ -197,21 +210,75 @@ def testIdeaEditor():
 	#we stopped when we were creating this test process
 	try:
 		print "Testing Idea editor"
+		session=idea_box.createAll()
+		#this will be the user we use for all additions
+		results=session.query(User).all()
+		nResults=[x for x in results if x.ideas!=[]]
+		testUser=nResults[random.randrange(len(nResults))]
+		testIdea=testUser.ideas[0]
+		print "*****original******"
+		print testIdea
+		print "*******************"
 		try:
-			print "test1: Adding to a tag"
+			print "test1: Adding a tag"
+			idea_box.idea_change(testUser,testIdea.title,"tags","Added by test process",1,session)
+		except: 
+			print "Test 1 Fail"
+			raise
+		else: 
+			#session.commit()
+			print "Test 1 Pass"
+			print "*****test1******"
+			print testIdea
+			print "*******************"
 		
+		try:
+			print "test2: Editing a tag"
+			idea_box.idea_change(testUser,testIdea.title,"tags",("Added by test process","ALPHA"),0,session)
+		except: 
+			print "Test 2 Fail"
+			raise
+		else: 
+			#session.commit()
+			print "Test 2 Pass"
+			print "*****test2******"
+			print testIdea
+			print "*******************"
+		
+		try:
+			print "test3: Deleting a tag"
+			idea_box.idea_change(testUser,testIdea.title,"tags","ALPHA",-1,session)
+		except: 
+			print "Test 3 Fail"
+			raise
+		else: 
+			#session.commit()
+			print "Test 3 Pass"
+			print "*****test3******"
+			print testIdea
+			print "*******************"	
+			
+	except: 
+		print "Idea Editor Failed"
+		raise
+	else:
+		print "Idea Editor Passed All Tests"
+		session.commit()
+		session.close()
+	
+			
 		
 #deleteDB()
 #createDB()
-print "----------------------"	
+'''print "----------------------"	
 newUser()
 print "----------------------"	
 newIdea()
 print "----------------------"	
 secondIdea()
 print "----------------------"	
-changeToLower()
-print "----------------------"	
 secondTag()
 print "----------------------"
-passwordCheck()
+passwordCheck()'''
+
+testIdeaEditor()

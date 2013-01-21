@@ -36,7 +36,25 @@ def createAll():
 	session=Session() #create the session object to comm with db
 	Base.metadata.create_all(engine) #create our db with the tables
 	return session
-	
+#createUser,deleteUser and change user can all be rolled into 1 function with different
+#flags, similar to idea_change
+
+def user_change(username,thingtochange,changetothis,edremadd, session=createAll()):
+	#a function used for editing users
+	#username is the username of the user being modified
+	#thingtochange is the thing that gets changed
+	#changetothis is what the thing gets changed to, when adding this is teh new password, username, the new name
+	#edremadd -1 delete user, 0 edit user, 1 add user
+	results=session.query(User).filter(User.username==username.lower()).all()
+	'''!!!!!!!!!!!!!here!!!!!!!!!!!!!!!!!!!!!'''
+	if edremadd==1:
+		#add a new user
+		if len(results)==0:
+			#that username is unique
+			pass
+		else: return "Username already Exists"
+		
+
 def createUser(username,password,session=createAll()):
 	#create a new user
 	#verifies username does not exist, password is at least 10 characters
@@ -74,37 +92,40 @@ def createIdea(user,title,idea,tags, session=createAll()):
 		session.commit()
 	session.close()
 	return 1
-
+	
 def idea_change(user,title,thingtochange,changetothis,edremadd, session=createAll()):
 	'''#a function designed to change any partof an idea
 	#user owns the idea, title identifies which idea it is
 	#thingtochange identifies which item will be changed (tag, title, etc)
 	#changetothis is the new value for whatever is being changed (note: if a tag is being editted, this is a tuple, containing which tag to change[0] and what to change it to[1])
+	#if a tag is being deleted, the changetothis value contains the name of the tag to be deleted
 	#edremadd is a flag signifying if the thingtochange is being edited (0), removed(-1) or added (1)'''
 	#find the idea
-	idea=session.query(Idea).filter(_and(Idea.user_id==user.id,Idea.title==title)).all()[0]
+	idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
 	
-	#makethechanges
+	#makethechanges	
 	if edremadd==-1 and thingtochange=="tags":
 		#deleting, only works for tags
+		idea.__dict__[thingtochange]=idea.__dict__[thingtochange].replace(changetothis,"")
+		idea.__dict__[thingtochange]=idea.__dict__[thingtochange].rstrip(" , ")
 		
-	elif eremadd==0:
+	elif edremadd==0:
 		#editing
 		if thingtochange=="tags":
 			#need to change the specific tag in the array
-			tagNum=idea.__dict__[thingtochange].index(changetothis[0])
-			idea.__dict__[thingtochange][tagNum]=changetothis[1]
+			idea.__dict__[thingtochange]=idea.__dict__[thingtochange].replace(changetothis[0],changetothis[1])
+			
 		else: idea.__dict__[thingtochange]=changetothis
-	elif edremadd==1 and thingtochage=="tags":
+		
+	elif edremadd==1 and thingtochange=="tags":
 		#adding, this only works for tags
-		idea.__dict__[thingtochange].append(changetothis)
+		idea.__dict__[thingtochange]+=" , "+changetothis
+		print idea.__dict__[thingtochange]
+		
 	else:
 		print "Cannot complete transaction"
-		session.close()
 	
 	#get thefuck out
-	session.commit()
-	session.close()
 	
 
 def signInVerify(userName,password):
