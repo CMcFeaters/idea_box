@@ -14,6 +14,7 @@ try:
 	from error_classes import stdException
 	from conversion import timeConv
 	from random_tools import id_generator
+	from sqlalchemy import and_,or_
 except:
 	print "Importing Failed"
 	raise 
@@ -44,123 +45,220 @@ def createDB():
 		print "Database creation Failed"
 	else:
 		print "Database create Complete"
+
+def createTestDB():
+	#a function to quickly fill out a DB in case of deletion, used for testing
+	#2 users
+	#each user has 10 ideas
+	session=idea_box.createAll()
+	session.add(User("Chuck","FUCKYOUGAYPASSWORDRULES"))
+	session.add(User("Charles","MYPASSWORDISWITHINTHEDESIGNCONSTRAINTS"))
+	session.commit()
+	result=session.query(User)
+	for thing in result:
+		#each user
+		for i in range(10):
+			tags="tag"+str(13*i)+",tag"+str(17*i)+",tag"+str(19*i)
+			session.add(Idea(thing.id,"Title"+str(i),"THIS IS BORING IDEA "+str(i),tags))
+	session.commit()
+	session.close()
+
+def outputUser(username):
+	#prints out a user's data
+	session=idea_box.createAll()
+	print session.query(User).filter(User.username==username).all()
 	
-
-#thought: this should be written as the inputs from a website
-	#this way the program doesn'thave to be re-written when
-	#the web interface is added
-
-
-
+def outputIdea(username,title):
+	#prints out a specific idea
+	session=idea_box.createAll()
+	user=session.query(User).filter(User.username==username).all()[0]
+	print session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()
+	
 def newUser():
 	#this function creats a new user
 	try:
 		#create a new use with a randomly generated username
 		print "Attempting New User Creation"
 		session=idea_box.createAll()
-		username=id_generator()
-		# try to creat a user
-		x=idea_box.createUser(username,"10LONGCHARACTERS",session)
-		while x!=1:
-			#if the username already exists, create a different one and try again
-			username=id_generator()
-			x=idea_box.createUser(username,"10LONGCHARACTERS",session)
+		username="New User 1"
+		password="THISSHOULDBEACCEPTABLE"
+		if idea_box.createUser(username,password,session):
+			print "User Created"
+		else: print "User not Created"
+		session.close()
 	except:
 		print "User Creation Error"
 		raise
 	else:
-		print "User Creation Successful"
-
+		print "User Creation Error Free"
+		outputUser(username.lower())
+		
 def newIdea():
 	#create a new idea for a user with no existing ideas
 	try:
 		#add an idea to a user with no existing ideas, if one does not exist, create a new user
 		print "Attempting First Idea Addition"
-		
+		username="New User 1"
+		title="A stupid Title"
 		#find a user with no ideas
-		session=idea_box.createAll()
-		results=session.query(User)
-		
-		#check for a user with no ideas
-		x=[thing for thing in results if thing.ideas==[]]
-		
+		session=idea_box.createAll()		
 		#the test user has no ideas, we will add a new one
-		testUser=x[0]
-		testIdea=Idea(testUser.id,"TEST IDEA_%s"%(id_generator(random.randrange(3),string.digits)),"%s"%(id_generator(10,string.ascii_uppercase)),id_generator(5,string.ascii_uppercase))
-		z=idea_box.createIdea(testUser,testIdea.title,testIdea.idea,testIdea.tags,session)
-		if z!=1:
-			print z
-			raise Exception("IT WORKED")
+		if idea_box.createIdea(username.lower(),title.lower(),"BODY","tag1,tag2",session):
+			print "Idea Created"
+		else: print "IDea not created"
+		session.close()
+		
 	except:
 		print "Idea Creation Failed"
 		raise
 	else:
 		print "Idea Creation Successful"
+		outputIdea(username.lower(),title.lower())
 		
-def secondIdea():
-	#create a duplicate idea for a user with existing ideas
+def changePW():
+	#this function changes the password
 	try:
-		#add an idea to a user with no existing ideas, if one does not exist, create a new user
-		print "Attempting Second Idea Addition"
-		
-		#find a user with no ideas
+		#create a new use with a randomly generated username
+		print "Attempting Password change"
 		session=idea_box.createAll()
-		results=session.query(User)
-		
-		#check for a user with no ideas
-		x=[thing for thing in results if thing.ideas!=[]]
-		
-		#the test user has no ideas, we will add a new one
-		testUser=x[0]
-		
-		#find an existing idea and it's title
-		controlIdea=session.query(Idea).filter(Idea.user_id==testUser.id).all()[0]
-		
-		testIdea=Idea(testUser.id,controlIdea.title,"%s"%(id_generator(10,string.ascii_uppercase)),id_generator(5,string.ascii_uppercase))
-		z=idea_box.createIdea(testUser,testIdea.title,testIdea.idea,testIdea.tags,session)
-		if z!=1:raise stdException("BLANK")
-		
-	except stdException:
-		print "Second Idea title already Exists"
-	except:
-		print "Second Idea Creation Failed"
-		raise
-	else:
-		print "Second Idea Creation Successful"
-		
-def secondTag():
-	try:
-		#this tests the idea_tables.idea.addTag(tag) function
-		print "Attempting Tag Addition"
-		session=idea_box.createAll()
-		results=session.query(User).all()
-		nResults=[x for x in results if x.ideas!=[]]
-		testUser=nResults[random.randrange(len(nResults))]
-		testUser.ideas[random.randrange(len(testUser.ideas))].addTag("EXTRA!!!!!!!!!!")
-		session.commit()
+		username="New User 1".lower()
+		password="fuckmeisthis10?E"
+		if idea_box.changePassword(username,password,session):
+			print "Password Changed"
+		else: print "Password not changed"
 		session.close()
 	except:
-		print "Tag Addition Failed"
+		print "Password change error"
 		raise
 	else:
-		print "Tag Addition Success"
+		print "Passowrd Change complete"
+		outputUser(username.lower())
+		
+def changeUname():
+	#this ufnction changes the password
+	try:
+		#create a new use with a randomly generated username
+		print "Attempting Username change"
+		session=idea_box.createAll()
+		username="New User 1".lower()
+		newUsername="fuckYes".lower()
+		if idea_box.changeUsername(username,newUsername,session):
+			print "Username changed"
+		else: print "Username not changed"
+		session.close()
+	except:
+		print "Username change error"
+		raise
+	else:
+		print "Username change error free"
+		outputUser(newUsername.lower())
+		
+def changeIdeaTitle():
+	#changes an idea's title
+	try:
+		print "Attempting title change"
+		session=idea_box.createAll()
+		username="fuckyes".lower()
+		title="A stupid Title".lower()
+		newTitle="A great title".lower()
+		if idea_box.changeTitle(username,title,newTitle,session):
+			print "Title Changed"
+		else: print "Title not changed"
+		session.close()
+	except:
+		print "Title Chjange error"
+		raise
+	else:
+		print "title change error free"
+		outputIdea(username.lower(),newTitle.lower())
+		
+def changeBody():
+	#changes an idea's body
+	try:
+		#create a new use with a randomly generated username
+		print "Attempting body change"
+		session=idea_box.createAll()
+		username="fuckyes".lower()
+		title="A great title".lower()
+		if idea_box.changeIdea(username,title,"THIS IS A FUCKING BODY",session):
+			print "Body Changed"
+		else: print "Body not changed"
+		session.close()
+	except:
+		print "Body Change error"
+		raise
+	else:
+		print "Body change error free"
+		outputIdea(username.lower(),title.lower())
+		
+def tagWork():
+	#changes an idea's tags, delete one, add one, edit one
+	try:
+		#create a new use with a randomly generated username
+		print "Attempting body change"
+		session=idea_box.createAll()
+		username="fuckyes".lower()
+		title="A great title".lower()
+		tagtoAdd="NEWTAG"
+		tagtoDelete="tag1"
+		tagtoEdit="tag2"
+		tagtoEditTo="supertag2"
+		if idea_box.deleteTag(username,title,tagtoDelete,session):
+			print "Tag %s deleted"%tagtoDelete
+		else: print "Tag  not deleted"%tagtoDelete
+		
+		if idea_box.addTag(username,title,tagtoAdd,session):
+			print "Tag %s added"%tagtoAdd
+		else: print "Tag  not added"%tagtoAdd
+		
+		if (idea_box.deleteTag(username,title,tagtoEdit,session) and idea_box.addTag(username,title,tagtoEditTo,session)):
+			print "Tag %s edited to %s"%(tagtoEdit,tagtoEditTo)
+		else: print "Tag  not edited to %s"%(tagtoEdit,tagtoEditTo)
+		session.close()
+	except:
+		print "Tags edited with error"
+		raise
+	else:
+		print "Tag edits error free"
+		outputIdea(username.lower(),title.lower())
 
+def deleteIdea():
+#deletes the idea
+	try:
+		#create a new use with a randomly generated username
+		print "Attempting idea deletion"
+		session=idea_box.createAll()
+		username="fuckyes".lower()
+		title="A great title".lower()
+		if idea_box.deleteIdea(username,title,session):
+			print "Idea Deleted"
+		else: print "Idea not deleted"
+		session.close()
+	except:
+		print "Body Change error"
+		raise
+	else:
+		print "Body change error free"
+		outputIdea(username.lower(),title.lower())
 		
 def deleteUser():
+#deletes the user
 	try:
-		print "Attempting Delete User"
+		#create a new use with a randomly generated username
+		print "Attempting user deletion"
 		session=idea_box.createAll()
-		results=session.query(User).all()
-		testUser=results[random.randrange(len(results))]
-		session.delete(testUser)
-		session.commit()
+		username="fuckyes".lower()
+		if idea_box.deleteUser(username,session):
+			print "User Deleted"
+		else: print "User not deleted"
 		session.close()
 	except:
-		print "User Deletion Failed"
+		print "User deletion error"
 		raise
 	else:
-		print "User Deletion Successful"
-
+		print "User Deletion error free"
+		outputUser(username.lower())
+		
 def changeToLowerIdeas():
 	#a function that changes all idea titles to lowercase
 	session=idea_box.createAll()
@@ -184,27 +282,6 @@ def changeToLowerUsers():
 		session.add(results[i])
 	session.commit()
 	session.close
-		
-
-def passwordCheck():
-	#runs the password check function
-	try:
-		print "Running Password Check"
-		session=idea_box.createAll()
-		results=session.query(User).all()
-		uName=results[0].username
-		pw=results[0].password
-		x=idea_box.signInVerify(uName,pw)
-		if x==1:
-			print "Welcome in ",uName
-		else:
-			print x
-		session.close()
-	except:
-		print "Password Check Failure"
-		raise
-	else:
-		print "Password Cehck Success"
 
 def testIdeaEditor():
 	#we stopped when we were creating this test process
@@ -268,17 +345,25 @@ def testIdeaEditor():
 	
 			
 		
-#deleteDB()
-#createDB()
-'''print "----------------------"	
+deleteDB()
+createDB()
+createTestDB()
+print "----------------------"	
 newUser()
 print "----------------------"	
 newIdea()
 print "----------------------"	
-secondIdea()
+changePW()
 print "----------------------"	
-secondTag()
-print "----------------------"
-passwordCheck()'''
-
-testIdeaEditor()
+changeUname()
+print "----------------------"	
+changeIdeaTitle()
+print "----------------------"	
+changeBody()
+print "----------------------"	
+tagWork()
+print "----------------------"	
+deleteIdea()
+print "----------------------"	
+deleteUser()
+print "----------------------"	

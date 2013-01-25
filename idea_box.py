@@ -39,126 +39,134 @@ def createAll():
 #createUser,deleteUser and change user can all be rolled into 1 function with different
 #flags, similar to idea_change
 
-def user_change(username,thingtochange,changetothis,edremadd, session=createAll()):
-	#a function used for editing users
-	#username is the username of the user being modified
-	#thingtochange is the thing that gets changed
-	#changetothis is what the thing gets changed to, when adding this is teh new password, username, the new name
-	#edremadd -1 delete user, 0 edit user, 1 add user
+def uniqueUsername(username):
+	#a search that returns 1 if username is unique, 0 if not
+	session=createAll()
+	if len(session.query(User).filter(User.username==username).all())>0:
+		session.close()
+		return 0
+	else: 
+		session.close()
+		return 1
 	
-	username=username.lower()	#maybe end up deleting this if we sanitize the input
-	user=session.query(User).filter(User.username==username)
-	if thingtochange=="username":changetothis=changetothis.lower()
-	'''!!!!!!!!!!!!!here!!!!!!!!!!!!!!!!!!!!!'''
-	if edremadd==1:
-		#add a new user
-		if len(user.all())==0:
-			#that username is unique
-			session.add(User(username,changetothis))
-		else: return "Username already Exists"
-	elif edremadd==0:
-		#editing a user
-		if thingtochange!="username" or len(session.query(User).filter(User.username==changetothis).all())==0:
-			user.__dict__[thingtochange]=changetothis
-	
-	elif edremadd==-1:
-		#deleting user
-		session.delete(user)
+def uniqueTitle(username,title):
+	#searches to determine if a title already exists for a given user
+	session=createAll()
+	user=session.query(User).filter(User.username==username).all()[0]
+	if len(session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all())>0:
+		session.close()
+		return 0
 	else:
-		print "Cannot Add user"
-	
-	session.commit()
-	session.close()
-	
+		session.close()
+		return 1
 
 def createUser(username,password,session=createAll()):
-	#create a new user
-	#verifies username does not exist, password is at least 10 characters
-	#returns 1 if creation successful
-	results=session.query(User).filter(User.username==username.lower())
-	#checklength of results
-	if len(results.all())>0:
-		return "Username already exists"
-		session.close()
-	#check passwordlength
-	if len(password)<=10:
-		session.close()
-		return "Password too short"
-	#if it's all good, commit and move on with our lives
-	session.add(User(username,password))
-	session.commit()
-	session.close()
-	return 1
-	
-def createIdea(user,title,idea,tags, session=createAll()):
-	#create a new idea in the database
-	#"user" is the user that the idea shall be assigned to	
-	#check to verify there are no existing ideas with the same title
-	#if so, add and commit
-	newIdea=Idea(user.id,title,idea,tags)
-	
-	#check for duplicate titles
-	results=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()
-	if len(results)>0:
-		#mutliple with the same title
-		session.close()
-		return "Title Already Exists"
-	else:
-		session.add(newIdea)
+	#creates a new user, returns 1 if commited, 0 if not
+	if uniqueUsername(username) and len(password)>10:
+		session.add(User(username.lower(),password))
 		session.commit()
-	session.close()
-	return 1
-	
-def idea_change(user,title,thingtochange,changetothis,edremadd, session=createAll()):
-	'''#a function designed to change any partof an idea
-	#user owns the idea, title identifies which idea it is
-	#thingtochange identifies which item will be changed (tag, title, etc)
-	#changetothis is the new value for whatever is being changed (note: if a tag is being editted, this is a tuple, containing which tag to change[0] and what to change it to[1])
-	#if a tag is being deleted, the changetothis value contains the name of the tag to be deleted
-	#edremadd is a flag signifying if the thingtochange is being edited (0), removed(-1) or added (1)'''
-	#find the idea
-	if thingtochange=="title": changetothis=changetothis.lower() #maybe delete if we sanitize input
-	idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
-	
-	#makethechanges	
-	if edremadd==-1:
-		if thingtochange=="tags":
-			#deleting, only works for tags
-			idea.__dict__[thingtochange]=idea.__dict__[thingtochange].replace(changetothis,"")
-			idea.__dict__[thingtochange]=idea.__dict__[thingtochange].rstrip(" , ")
-		else:
-			#deleting the whole idea
-			session.delete(idea)
-		#`session.commit()
-		
-	elif edremadd==0:
-		#editing
-		if thingtochange=="tags":
-			#need to change the specific tag in the array
-			idea.__dict__[thingtochange]=idea.__dict__[thingtochange].replace(changetothis[0],changetothis[1])
-		elif thingtochange=="idea": idea.__dict__[thingtochange]=changetothis
-		elif thingtochange=="title" and len(session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==changetothis.lower())).all())==0:
-			#no duplicate titles
-			idea.__dict__[thingtochange]=changetothis.lower()
-		else: print "Cannot update"
-		#session.commit()
-		
-	elif edremadd==1:
-		if thingtochange=="tags":
-			#adding, this only works for tags
-			idea.__dict__[thingtochange]+=" , "+changetothis
-			print idea.__dict__[thingtochange]
-		elif len(session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==changetothis)).all())==0:
-			#no duplicate titles
-			idea.__dict__[thingtochange]=changetothis
-		#session.commit()
-	else:
-		print "Cannot complete transaction"
-	
-	#session.close()
-	#get thefuck out
-	
+		return 1
+	else: return 0
 
+def changeUsername(oldUsername, newUsername, session=createAll()):
+	#changes a username to another unique one, 1 if commited, 0 if not
+	#usernames are stored in lowercase
+	if uniqueUsername(newUsername):
+		user=session.query(User).filter(User.username==oldUsername).all()[0]
+		user.username=newUsername.lower()
+		session.commit()
+		return 1
+	else: return 0
+	
+def changePassword(username,password,session=createAll()):
+	#changes the password of a user as long as it's 10 characters, 1 if good 0 if not
+	if len(password)>=10:
+		user=session.query(User).filter(User.username==username).all()[0]
+		user.password=password
+		session.commit()
+		return 1
+	else: return 0
+	
+def deleteUser(username,session=createAll()):
+	#deletes a user by username, 1 if good 0 if not
+	try:
+		user=session.query(User).filter(User.username==username).all()[0]
+		session.delete(user)
+		session.commit()
+		return 1
+	except: return 0
+
+def createIdea(username,title,body,tags,session=createAll()):
+	#creates a new idea for a user as long as the title is unique, 1 if good 0 if not
+	#body and tags can be empty
+	user=session.query(User).filter(User.username==username).all()[0]
+	if uniqueTitle(username,title):
+		session.add(Idea(user.id,title,body,tags))
+		session.commit()
+		return 1
+	else: return 0
+	
+def deleteIdea(username,title,session=createAll()):
+	#deletes an idea
+	user=session.query(User).filter(User.username==username).all()[0]
+	try:
+		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
+		session.delete(idea)
+		session.commit()
+		return 1
+	except: return 0
+
+def changeTitle(username,oldTitle,newTitle,session=createAll()):
+	#changes a title to a unique new title
+	user=session.query(User).filter(User.username==username).all()[0]
+	if uniqueTitle(username,newTitle):
+		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==oldTitle)).all()[0]
+		idea.title=newTitle
+		session.commit()
+		return 1
+	else: return 0
+
+def changeIdea(username,title,newIdea,session=createAll()):
+	#changes an idea, 1 if good 0 if not
+	try:
+		user=session.query(User).filter(User.username==username).all()[0]
+		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
+		idea.idea=newIdea
+		session.commit()
+		return 1
+	except: return 0
+	
+def deleteTag(username,title,tag,session=createAll()):
+	#replaces a tag in the tag string with "", 1 if good 0 if not
+	try:
+		user=session.query(User).filter(User.username==username).all()[0]
+		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
+		idea.tags=idea.tags.replace(tag,"")
+		idea.tags=idea.tags.replace(",,",",")#the tags are separated by commas, this deletes any double commas
+		idea.tags=idea.tags.lstrip(',')
+		idea.tags=idea.tags.rstrip(",")
+		session.commit()
+		return 1
+	except: return 0
+	
+def addTag(username,title,tag,session=createAll()):
+	#adds a tag to the tag string, 1 if good 0 if not
+	try:
+		user=session.query(User).filter(User.username==username).all()[0]
+		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
+		idea.tags=idea.tags+","+tag
+		session.commit()
+		return 1
+	except: return 0
+
+def editTag(username,title,oldTag,newTag,session=createAll()):
+	#edits oldTag to be newTag, 1 if good 0 if not
+		if deleteTag(username,title,oldTag,session):
+			if addTag(username,title,newTag,session):
+				return 1
+			else: return 0
+		else: return 0
+		
 def signInVerify(userName,password):
 	#a function to check the username against it's password
 	#given a username and password, returns 1 if correct or a string defining why
