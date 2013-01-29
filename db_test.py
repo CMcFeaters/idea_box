@@ -41,6 +41,7 @@ def createDB():
 	try:
 		print "Attempting Database Creation"
 		session=idea_box.createAll()
+		session.close()
 	except:
 		print "Database creation Failed"
 	else:
@@ -59,7 +60,7 @@ def createTestDB():
 		#each user
 		for i in range(10):
 			tags="tag"+str(13*i)+",tag"+str(17*i)+",tag"+str(19*i)
-			session.add(Idea(thing.id,"Title"+str(i),"THIS IS BORING IDEA "+str(i),tags))
+			session.add(Idea(thing.id,"Title"+str(i*13),"THIS IS BORING IDEA "+str(i*15),tags))
 	session.commit()
 	session.close()
 
@@ -283,67 +284,7 @@ def changeToLowerUsers():
 	session.commit()
 	session.close
 
-def testIdeaEditor():
-	#we stopped when we were creating this test process
-	try:
-		print "Testing Idea editor"
-		session=idea_box.createAll()
-		#this will be the user we use for all additions
-		results=session.query(User).all()
-		nResults=[x for x in results if x.ideas!=[]]
-		testUser=nResults[random.randrange(len(nResults))]
-		testIdea=testUser.ideas[0]
-		print "*****original******"
-		print testIdea
-		print "*******************"
-		try:
-			print "test1: Adding a tag"
-			idea_box.idea_change(testUser,testIdea.title,"tags","Added by test process",1,session)
-		except: 
-			print "Test 1 Fail"
-			raise
-		else: 
-			#session.commit()
-			print "Test 1 Pass"
-			print "*****test1******"
-			print testIdea
-			print "*******************"
 
-		try:
-			print "test2: Editing a tag"
-			idea_box.idea_change(testUser,testIdea.title,"tags",("Added by test process","ALPHA"),0,session)
-		except: 
-			print "Test 2 Fail"
-			raise
-		else: 
-			#session.commit()
-			print "Test 2 Pass"
-			print "*****test2******"
-			print testIdea
-			print "*******************"
-
-		try:
-			print "test3: Deleting a tag"
-			idea_box.idea_change(testUser,testIdea.title,"tags","ALPHA",-1,session)
-		except: 
-			print "Test 3 Fail"
-			raise
-		else: 
-			#session.commit()
-			print "Test 3 Pass"
-			print "*****test3******"
-			print testIdea
-			print "*******************"	
-			
-	except: 
-		print "Idea Editor Failed"
-		raise
-	else:
-		print "Idea Editor Passed All Tests"
-		session.commit()
-		session.close()
-	
-			
 		
 deleteDB()
 createDB()
