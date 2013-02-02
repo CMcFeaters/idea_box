@@ -24,13 +24,38 @@ def login():
 		return redirect(url_for('addIdea'))
 	return render_template("welcome.html")
 
+@app.route('/searchIdea',methods=['GET','POST'])
+def searchIdea():
+	print 'hello'
+	if request.method=='POST':
+		print 'FUCK'
+		#this portion executes the search
+		#will redirect to results, showing search results
+		return redirect(url_for('displayResults'))
+	else: return render_template('searchIdea.html')
+	
+@app.route('/displayResults', methods=['GET'])
+def displayResults():
+	#all resutls displayed here
+	return render_template('displayResults.html', results=results)
+	
+#####################################################
+####START HERE!!!!!!!!!!!!!!!!!!!
+#adding RESULTS to the DISPLAY TEMPLATE!!!!!!!!!!!!!!
+#####################################################	
+
 @app.route('/addIdea',methods=['GET','POST'])
 def addIdea():
 	if request.method=='POST':
+		#do title check
+		#if successful, post idea to db, redirect to display idea showing only new idea
+		#if not, flash why re-rendertemplate
 		print request.form['body']
-		return render_template('addIdea.html')
+		if 1: return redirect(url_for('displayResults', results=results))
+		else: 
+			flash("ERROR")
+			return render_template('addIdea.html')
 	else:
-		print request.method
 		return render_template('addIdea.html')
 	
 @app.route('/register', methods=['GET', 'POST'])
