@@ -14,7 +14,8 @@ from idea_box import createAll
 from idea_tables import User, Idea
 	
 def ideaQuery(username,title,contains,tags,session=createAll()):
-	#a function that can take in up to 3 search options and returns the results as an array
+	###a function that can take in up to 3 search options and returns the results as a query object
+	
 	#user is the user who's ideas we're searching, it will be a User()
 	#title is the title string we are searching for, it will include any %'s alreayd, liek will be used
 	#tags comes in as a string separated by commas
@@ -27,9 +28,9 @@ def ideaQuery(username,title,contains,tags,session=createAll()):
 		user=session.query(User).filter(User.username==username).all()[0]
 		results=results.filter(Idea.user_id==user.id)	#if the search is user specificd
 		
-	if title<>"": results=results.filter(Idea.title.like(title)) #if a title is included
+	if title<>"": results=results.filter(Idea.title.like("%"+title+"%")) #if a title is included
 	
-	if contains<>"": results=results.filter(Idea.idea.like(contains)) #if contains are included
+	if contains<>"": results=results.filter(Idea.idea.like("%"+contains+"%")) #if contains are included
 	
 	if tags<>"":#adjust tags so they are in an array of format [%tag%,%tag%...]
 		tags="%"+tags+"%"
