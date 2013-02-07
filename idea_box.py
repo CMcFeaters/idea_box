@@ -167,6 +167,16 @@ def editTag(username,title,oldTag,newTag,session=createAll()):
 			else: return 0
 		else: return 0
 		
+def changeTags(username,title,newTags,session=createAll()):
+	#changes all tags, 1 if good 0 if not
+	try:
+		user=session.query(User).filter(User.username==username).all()[0]
+		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
+		idea.tags=newTags
+		session.commit()
+		return 1
+	except: return 0
+	
 def signInVerify(userName,password):
 	#a function to check the username against it's password
 	#given a username and password, returns 1 if correct or a string defining why
