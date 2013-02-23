@@ -47,3 +47,8 @@ def ideaQuery(username,title,contains,tags,session=createAll()):
 			else: results=results.union(thing)
 		
 	return results
+
+def userQuery():
+	#returns a list of all users except admin
+	session=createAll()
+	return session.query(User).filter(User.username!='admin')

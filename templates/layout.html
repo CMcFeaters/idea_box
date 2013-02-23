@@ -1,0 +1,19 @@
+<!--layout-->
+<!doctype html>
+<title>Idea Box</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+<div class=page>
+  <center><h1>Leave a piece of your mind</h1></center>
+  	{% if session.logged_in %}
+		<md>Welcome {{session.username}}</md>
+		<br>
+		<sml>Edit: <a href="{{url_for('editUsername',username=session.username)}}">Username</a> / 
+		<a href="{{url_for('editPassword')}}">Password</a>
+		</sml>
+	{% endif %}
+  {%for message in get_flashed_messages()%}
+  		<div class=flash>{{message}}</div>
+  {%endfor%}		
+  {% block body %}{% endblock %}
+</div>

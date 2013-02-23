@@ -5,19 +5,16 @@ import idea_box,idea_search
 
 app= Flask(__name__)
 app.config.from_object(__name__)
-app.config.from_envvar('FLASKR_SETTINGS',silent=True)
+#app.config.from_envvar('FLASKR_SETTINGS',silent=True)
 app.debug=True
 
 app.secret_key = 'development key'
-USERNAME = 'admin'
-PASSWORD = 'default'
 
 @app.route('/')
 def welcome():
 	#standard welcome, you're logged in or you're not
 	if session.get('logged_in'):
 		return redirect(url_for('addIdea'))
-		#############CURRENTLY WORKING ON ADDIDEA WHERE A "None" title is sent
 	else: return render_template("welcome.html")
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -27,15 +24,57 @@ def login():
 		#check for valid log in
 		val=idea_box.signInVerify(request.form['username'].lower(),request.form['password'])
 		if val==1:
-			print val
 			session['username']=request.form['username']
 			session['logged_in']=True
 			flash("Welcome %s!!"%session['username'])
-			return redirect(url_for('addIdea'))
+			if session['username']=='admin':
+				#logged in as admin, redirect to admin's page
+				return redirect(url_for('admin'))
+			else:
+				#not admin, redirect elsewhere
+				return redirect(url_for('addIdea'))
 		else:
 			flash(val) #val is either 1, or an error message
 	return render_template("welcome.html")
 
+@app.route('/admin',methods=['GET','POST'])
+def admin():
+	#admin page, 
+	#displays all users w/ #of ideas
+	#allows for the deletion/creation of users and resetting of passwords
+	if session['username']=='admin':
+		return render_template('admin.html',users=idea_search.userQuery())
+	else: return redirect(url_for('welcome'))
+
+@app.route('/deleteUser/<username>',methods=['GET','POST'])
+def deleteUser(username):
+	#page to delete a user
+	if session['username']=='admin':
+		if request.method=="POST":
+			#delete was ok'd
+			if idea_box.deleteUser(username):flash(username + "deleted")
+			else: flash("SQL ERROR")
+			#go back to admin page
+			return redirect(url_for('admin'))
+		else: return render_template('adminUsername.html',username=username)
+	else: return redirect(url_for('welcome'))
+	
+@app.route('/resetPassword/<username>',methods=['GET','POST'])
+def resetPassword(username):
+	#reset a user's password
+	if session['username']=='admin':
+		if request.method=="POST":
+			if len(request.form['newPassword'])>=10 and len(request.form['newPassword'])<=50:
+				if request.form['newPassword']==request.form['newPasswordConfirm']:
+					if idea_box.changePassword(username,request.form['newPassword']):
+						flash(username+ ' password reset Success!')
+						return redirect(url_for('admin'))
+					else: flash('SQL Error')
+				else: flash("Passwords don't match")
+			else: flash("10-50 Characters admin")
+		return render_template('adminPassword.html',username=username)
+	else: return redirect(url_for('welcome'))
+	
 @app.route('/logout')
 def logout():
 	session['logged_in']=False
@@ -66,12 +105,7 @@ def displayAll():
 	
 #####################################################
 ####START HERE!!!!!!!!!!!!!!!!!!!
-#edit username
-#edit password
-#X - edit idea title
-#X - edit idea body
-#X - edit idea tags
-#X - delete idea
+#CONSIDER BETTER FEEDBACK FOR EDIT IDEA SECTION (say why you cant change something?)
 #####################################################	
 @app.route('/deleteIdea/<title>')
 def deleteIdea(title):
@@ -119,6 +153,38 @@ def editIdea(title):
 			return render_template('editIdea.html',idea=results)
 	else: return redirect(url_for('welcome.html'))
 
+@app.route('/editUsername/<username>',methods=['GET','POST'])
+def editUsername(username):
+	#changes the username and/or password as long as they meet requirements
+	if session['logged_in']:#verify logged in
+		if request.method=="POST":
+			changeState=idea_box.changeUsername(session['username'],request.form['newUsername'].lower())
+			if changeState==1:	#see if we can change it
+				session['username']=request.form['newUsername'].lower()
+				flash("Username Changed")
+				return redirect(url_for("welcome"))
+			else: flash(changeState)
+
+		else: return render_template("editUsername.html",username=session['username'])
+	else: return redirect(url_for('welcome'))
+
+@app.route('/editPassword',methods=['GET','POST'])
+def editPassword():
+	#change password, verify old password, check new password
+	if session.get('logged_in'):
+		if request.method=="POST": #ready to change?
+			if idea_box.signInVerify(session['username'],request.form['oldPassword'])==1: #a bunch of checks
+				if request.form['newPassword']==request.form['newPasswordConfirm']:
+					if idea_box.changePassword(session['username'],request.form['newPassword']):
+						flash("Password change successful!")
+						return redirect(url_for('welcome'))
+						
+					else: flash("Password length incorrect!")
+				else: flash("Passwords do not match!")
+			else: flash("Password incorrect")
+		return render_template('editPassword.html')
+		
+	else: return redirect(url_for('welcome'))
 @app.route('/addIdea',methods=['GET','POST'])
 def addIdea():
 	#checks if user is logged in, if title is unique
@@ -142,20 +208,19 @@ def addIdea():
 def register():
 	if request.method=='POST':
 		#check if the usrname is valid, if so create it and send to welcoem page
-		if idea_box.uniqueUsername(request.form['regUsername'].lower()):
-			if len(request.form['regPassword'])>=10:
-				if request.form['regPassword']==request.form['passwordConfirm']:
-					#we're good, create it and send on our way
-					idea_box.createUser(request.form['regUsername'].lower(),request.form['regPassword'])
-					flash("Registration successful! Welcome to the fold %s"%request.form['regUsername'])
-					return redirect(url_for('welcome'))
-					
-				#if not, tell why then back to register page	
+		#check username
+		userCheck=idea_box.usernameCheck(request.form['regUsername'])
+		if userCheck==1: #username is ok
+			if len(request.form['regPassword'])>=10 and len(request.form['regPassword'])<=50:
+				if request.form['regPassword']==request.form['passwordConfirm']:#password ok
+					#create this bad mother
+					if idea_box.createUser(request.form['regUsername'].lower(),request.form['regPassword']):
+						flash("Registration successful! Welcome to the fold %s"%request.form['regUsername'])
+						return redirect(url_for('welcome'))
+					else: flash("SQL ERROR")
 				else: flash("Passwords don't match")
-			else: flash("10 or more characters for a password")
-		else: flash("Username %s alread in use"%request.form['regUsername'])
-		
-		
+			else: flash("10-50 Characters for the password")
+		else: flash(userCheck)
 	return render_template("register.html")
 	
 if __name__=='__main__':

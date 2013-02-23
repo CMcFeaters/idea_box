@@ -25,6 +25,7 @@ from operator import ne,eq,lt,le,ge,gt
 #make a new and simpler search ability, make an importable class?
 
 
+
 #storage path for the database
 path="C:\\Users\Charles\Dropbox\Programming\DataBases\Idea_Box.db"
 
@@ -38,6 +39,24 @@ def createAll():
 	return session
 #createUser,deleteUser and change user can all be rolled into 1 function with different
 #flags, similar to idea_change
+
+def usernameCheck(username):
+	#checks a username for at least 3 characters no more than 10 and only letters and numbers
+	#username is lowercase
+	#returns 1 if good or the reason why if bad
+	######JUST RETURN THE ERROR
+	for character in username:
+		if string.ascii_letters.count(character)==0 and string.digits.count(character)==0:
+			return "%s is an invalid character, letters and numbers only please"%character
+	if username=='admin':
+		return username+" is a reserved username, please choose another"
+	if not uniqueUsername(username):
+		return username + " is already in use, please select another"
+	if len(username)<3:
+		return "At least 3 characters please"
+	if len(username)>10:
+		return "Maximum of 10 characters please"
+	return 1
 
 def uniqueUsername(username):
 	#a search that returns 1 if username is unique, 0 if not
@@ -62,30 +81,43 @@ def uniqueTitle(username,title):
 
 def createUser(username,password,session=createAll()):
 	#creates a new user, returns 1 if commited, 0 if not
-	if uniqueUsername(username) and len(password)>10:
+	try:
 		session.add(User(username.lower(),password))
 		session.commit()
+		session.close()
 		return 1
-	else: return 0
+	except:
+		session.close()
+		return 0
 
 def changeUsername(oldUsername, newUsername, session=createAll()):
-	#changes a username to another unique one, 1 if commited, 0 if not
+	#changes a username to another unique one, 1 if commited, returns error code if not
 	#usernames are stored in lowercase
-	if uniqueUsername(newUsername):
-		user=session.query(User).filter(User.username==oldUsername).all()[0]
-		user.username=newUsername.lower()
-		session.commit()
+	if oldUsername==newUsername:
+		session.close()
 		return 1
-	else: return 0
+	userCheck=usernameCheck(newUsername)
+	if userCheck==1:
+		user=session.query(User).filter(User.username==oldUsername).all()[0]
+		user.username=newUsername
+		session.commit()
+		session.close()
+		return 1
+	else: 
+		session.close()
+		return userCheck
 	
 def changePassword(username,password,session=createAll()):
 	#changes the password of a user as long as it's 10 characters, 1 if good 0 if not
-	if len(password)>=10:
+	if len(password)>=10 and len(password)<=50:
 		user=session.query(User).filter(User.username==username).all()[0]
 		user.password=password
 		session.commit()
+		session.close()
 		return 1
-	else: return 0
+	else: 
+		session.close()
+		return 0
 	
 def deleteUser(username,session=createAll()):
 	#deletes a user by username, 1 if good 0 if not
@@ -93,8 +125,11 @@ def deleteUser(username,session=createAll()):
 		user=session.query(User).filter(User.username==username).all()[0]
 		session.delete(user)
 		session.commit()
+		session.close()
 		return 1
-	except: return 0
+	except: 
+		session.close()
+		return 0
 
 def createIdea(username,title,body,tags,session=createAll()):
 	#creates a new idea for a user as long as the title is unique, 1 if good 0 if not
@@ -103,8 +138,11 @@ def createIdea(username,title,body,tags,session=createAll()):
 	if uniqueTitle(username,title):
 		session.add(Idea(user.id,title,body,tags))
 		session.commit()
+		session.close()
 		return 1
-	else: return 0
+	else:
+		session.close()
+		return 0
 	
 def deleteIdea(username,title,session=createAll()):
 	#deletes an idea
@@ -113,18 +151,27 @@ def deleteIdea(username,title,session=createAll()):
 		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
 		session.delete(idea)
 		session.commit()
+		session.close()
 		return 1
-	except: return 0
+	except: 
+		session.close()
+		return 0
 
 def changeTitle(username,oldTitle,newTitle,session=createAll()):
 	#changes a title to a unique new title
 	user=session.query(User).filter(User.username==username).all()[0]
-	if uniqueTitle(username,newTitle):
+	if uniqueTitle(username,newTitle) and len(newTitle)>=3 and len(newTitle)<=15:
 		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==oldTitle)).all()[0]
 		idea.title=newTitle
 		session.commit()
+		session.close()
 		return 1
-	else: return 0
+	elif newTitle==oldTitle:
+		session.close()
+		return 1
+	else: 
+		session.close()
+		return 0
 
 def changeIdea(username,title,newIdea,session=createAll()):
 	#changes an idea, 1 if good 0 if not
@@ -133,8 +180,11 @@ def changeIdea(username,title,newIdea,session=createAll()):
 		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
 		idea.idea=newIdea
 		session.commit()
+		session.close()
 		return 1
-	except: return 0
+	except: 
+		session.close()
+		return 0
 	
 def deleteTag(username,title,tag,session=createAll()):
 	#replaces a tag in the tag string with "", 1 if good 0 if not
@@ -146,8 +196,11 @@ def deleteTag(username,title,tag,session=createAll()):
 		idea.tags=idea.tags.lstrip(',')
 		idea.tags=idea.tags.rstrip(",")
 		session.commit()
+		session.close()
 		return 1
-	except: return 0
+	except: 
+		session.close()
+		return 0
 	
 def addTag(username,title,tag,session=createAll()):
 	#adds a tag to the tag string, 1 if good 0 if not
@@ -156,8 +209,11 @@ def addTag(username,title,tag,session=createAll()):
 		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
 		idea.tags=idea.tags+","+tag
 		session.commit()
+		session.close()
 		return 1
-	except: return 0
+	except: 
+		session.close()
+		return 0
 
 def editTag(username,title,oldTag,newTag,session=createAll()):
 	#edits oldTag to be newTag, 1 if good 0 if not
@@ -174,8 +230,11 @@ def changeTags(username,title,newTags,session=createAll()):
 		idea=session.query(Idea).filter(and_(Idea.user_id==user.id,Idea.title==title)).all()[0]
 		idea.tags=newTags
 		session.commit()
+		session.close()
 		return 1
-	except: return 0
+	except: 
+		session.close()
+		return 0
 	
 def signInVerify(userName,password):
 	#a function to check the username against it's password
@@ -183,10 +242,13 @@ def signInVerify(userName,password):
 	session=createAll()
 	result=session.query(User).filter(User.username==userName)
 	if len(result.all())!=1:
+		session.close()
 		return "Username Not Found"
 	elif result[0].password!=password:
+		session.close()
 		return "Password Incorrect"
 	else:
+		session.close()
 		return 1
 	session.close()
 	

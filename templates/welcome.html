@@ -1,0 +1,37 @@
+{% extends "layout.html" %}	
+{% block body %}
+
+<div class=leftPage>
+<form name=login action='{{ url_for("login") }}' method=POST>
+<dl>
+<dt><h2>Welcome back</h2>
+
+<dt><sml>Username:</sml><input type="text" name="username"></dt>
+
+<dt><sml>Password:</sml> <input type="password" name="password"></dt>
+<dt><input type=submit value=Login>
+</dl>
+</form> 
+</div>
+
+<div class=rightPage>
+<form name=register action='{{ url_for("register") }}'>
+<dl>
+<dt><h2>Come on in, the water's fine</h2>
+
+<dt><br></dt>
+<dt><input type=submit value=Register>
+</dl>
+</form> 
+</div>
+
+<div class=floatKiller></div>
+<div style="border-top-style:solid;border-color:#eee;border-width:1px">
+<br>
+<div class=largeText>What is this?</div>
+<div class=smallText><p>Ever had a great idea, worked out all the details in your head and started congratulating yourself
+how great it was only to realize you hadn't done shit yet?  Remember what any of those ideas were?  Me neither, but
+now you can!</p><p>Introducing Idea Box, a place you can store your brilliant ideas until later when you finally
+get off your lazy ass and do something with them.</p>
+</div>
+{% endblock %}
