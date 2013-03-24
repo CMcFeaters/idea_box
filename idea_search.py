@@ -45,10 +45,13 @@ def ideaQuery(username,title,contains,tags,session=createAll()):
 		for thing in resArr:
 			if resArr.index(thing)==0:results=thing
 			else: results=results.union(thing)
-		
+	session.close()
+	
 	return results
 
 def userQuery():
 	#returns a list of all users except admin
 	session=createAll()
-	return session.query(User).filter(User.username!='admin')
+	results= session.query(User).filter(User.username!='admin')
+	session.close()
+	return results

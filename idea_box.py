@@ -27,7 +27,8 @@ from operator import ne,eq,lt,le,ge,gt
 
 
 #storage path for the database
-path="C:\\Users\Charles\Dropbox\Programming\DataBases\Idea_Box.db"
+#path="C:\\Users\Charles\Dropbox\Programming\DataBases\Idea_Box.db"
+path="/home/cmcfeaters/projects/idea_box/Idea_Box.db"
 
 def createAll():
 	#create the engine, the base and the session
@@ -215,14 +216,14 @@ def addTag(username,title,tag,session=createAll()):
 		session.close()
 		return 0
 
-def editTag(username,title,oldTag,newTag,session=createAll()):
+'''def editTag(username,title,oldTag,newTag):
 	#edits oldTag to be newTag, 1 if good 0 if not
-		if deleteTag(username,title,oldTag,session):
-			if addTag(username,title,newTag,session):
+		if deleteTag(username,title,oldTag):
+			if addTag(username,title,newTag):
 				return 1
 			else: return 0
 		else: return 0
-		
+	'''	
 def changeTags(username,title,newTags,session=createAll()):
 	#changes all tags, 1 if good 0 if not
 	try:
