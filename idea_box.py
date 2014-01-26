@@ -84,7 +84,9 @@ def createUser(username,password,session=createAll()):
 	#creates a new user, returns 1 if commited, 0 if not
 	try:
 		session.add(User(username.lower(),password))
+		print "YES"
 		session.commit()
+		print "YES"
 		session.close()
 		return 1
 	except:
